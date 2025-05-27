@@ -1849,7 +1849,142 @@ async def export_docx(request: Request, filename: str):
     except Exception as e:
         logger.error(f"Error exporting to Word: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error exporting to Word: {str(e)}")
-    
+
+# Thêm health check endpoints sau phần setup app
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and load balancer"""
+    try:
+        # Check basic system status
+        health_status = {
+            "status": "healthy",
+            "message": "PDF Verb Analyzer is running",
+            "version": "1.0.0",
+            "timestamp": datetime.now().isoformat(),
+            "environment": "production" if IS_PRODUCTION else "development",
+            "port": PORT
+        }
+        
+        # Check if required directories exist
+        directories_status = {}
+        required_dirs = {
+            "uploads": UPLOAD_FOLDER,
+            "exports": EXPORT_FOLDER,
+            "cache": CACHE_FOLDER,
+            "templates": TEMPLATES_FOLDER,
+            "static": STATIC_FOLDER
+        }
+        
+        for dir_name, dir_path in required_dirs.items():
+            directories_status[dir_name] = {
+                "exists": os.path.exists(dir_path),
+                "path": str(dir_path),
+                "writable": os.access(dir_path, os.W_OK) if os.path.exists(dir_path) else False
+            }
+        
+        health_status["directories"] = directories_status
+        
+        # Check if spaCy model is loaded
+        health_status["spacy_model"] = {
+            "loaded": nlp is not None,
+            "model_name": "en_core_web_sm" if nlp else None
+        }
+        
+        # Check if templates are loaded
+        health_status["templates"] = {
+            "loaded": templates is not None
+        }
+        
+        # All checks passed
+        return health_status
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "message": f"Health check failed: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check with more comprehensive status"""
+    try:
+        import psutil
+        import sys
+        
+        # Basic health info
+        health_info = await health_check()
+        
+        # Add system information
+        health_info["system"] = {
+            "python_version": sys.version,
+            "platform": sys.platform,
+            "cpu_count": psutil.cpu_count(),
+            "memory": {
+                "total": psutil.virtual_memory().total,
+                "available": psutil.virtual_memory().available,
+                "percent_used": psutil.virtual_memory().percent
+            },
+            "disk": {
+                "total": psutil.disk_usage('/').total,
+                "free": psutil.disk_usage('/').free,
+                "percent_used": psutil.disk_usage('/').percent
+            }
+        }
+        
+        # Check cache directory size
+        cache_size = 0
+        cache_files = 0
+        if os.path.exists(CACHE_FOLDER):
+            for root, dirs, files in os.walk(CACHE_FOLDER):
+                cache_files += len(files)
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    try:
+                        cache_size += os.path.getsize(file_path)
+                    except OSError:
+                        pass
+        
+        health_info["cache"] = {
+            "files_count": cache_files,
+            "total_size_bytes": cache_size,
+            "total_size_mb": round(cache_size / (1024 * 1024), 2)
+        }
+        
+        # Check upload directory
+        upload_files = 0
+        upload_size = 0
+        if os.path.exists(UPLOAD_FOLDER):
+            for root, dirs, files in os.walk(UPLOAD_FOLDER):
+                upload_files += len(files)
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    try:
+                        upload_size += os.path.getsize(file_path)
+                    except OSError:
+                        pass
+        
+        health_info["uploads"] = {
+            "files_count": upload_files,
+            "total_size_bytes": upload_size,
+            "total_size_mb": round(upload_size / (1024 * 1024), 2)
+        }
+        
+        return health_info
+        
+    except ImportError:
+        # psutil not available, return basic health check
+        basic_health = await health_check()
+        basic_health["note"] = "Detailed system info not available (psutil not installed)"
+        return basic_health
+    except Exception as e:
+        logger.error(f"Detailed health check failed: {str(e)}")
+        basic_health = await health_check()
+        basic_health["detailed_check_error"] = str(e)
+        return basic_health
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
