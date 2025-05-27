@@ -1753,6 +1753,30 @@ async def export_html_pdf(request: Request, filename: str):
         logger.error(f"Error exporting to HTML PDF: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error exporting to HTML PDF: {str(e)}")
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    try:
+        # Check if required directories exist
+        required_dirs = [UPLOAD_FOLDER, EXPORT_FOLDER, CACHE_FOLDER]
+        for dir_path in required_dirs:
+            if not os.path.exists(dir_path):
+                return {"status": "unhealthy", "message": f"Directory {dir_path} not found"}
+        
+        # Check if spaCy model is loaded
+        if not nlp:
+            return {"status": "unhealthy", "message": "spaCy model not loaded"}
+        
+        return {
+            "status": "healthy", 
+            "message": "All systems operational",
+            "version": "1.0.0",
+            "python_version": os.sys.version,
+            "is_production": IS_PRODUCTION
+        }
+    except Exception as e:
+        return {"status": "unhealthy", "message": f"Health check failed: {str(e)}"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
