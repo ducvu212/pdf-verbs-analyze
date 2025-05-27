@@ -48,12 +48,12 @@ OCR_AVAILABLE = False
 #    logging.warning("OCR libraries not available. OCR extraction disabled.")
 
 # Production configuration
-IS_PRODUCTION = os.getenv("RENDER") is not None
+IS_PRODUCTION = os.getenv("RENDER") is not None or os.getenv("RAILWAY_ENVIRONMENT") is not None
 PORT = int(os.environ.get("PORT", 8000))
 
 # Configure paths
 if IS_PRODUCTION:
-    BASE_DIR = Path("/app")
+    BASE_DIR = Path("/opt/render/project/src")  # Render's working directory
 else:
     BASE_DIR = Path(__file__).parent
 
@@ -62,9 +62,34 @@ EXPORT_FOLDER = BASE_DIR / "exports"
 CACHE_FOLDER = BASE_DIR / "cache"
 TEMPLATES_FOLDER = BASE_DIR / "templates"
 
-# Ensure directories exist
-for folder in [UPLOAD_FOLDER, EXPORT_FOLDER, CACHE_FOLDER]:
-    folder.mkdir(exist_ok=True)
+# Ensure directories exist với proper permissions
+def ensure_directories():
+    """Ensure all required directories exist with proper permissions"""
+    directories = [UPLOAD_FOLDER, EXPORT_FOLDER, CACHE_FOLDER]
+    
+    for directory in directories:
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+            # Set permissions if needed
+            os.chmod(directory, 0o755)
+            logging.info(f"✅ Directory created/verified: {directory}")
+        except Exception as e:
+            logging.error(f"❌ Failed to create directory {directory}: {e}")
+            # Fallback to /tmp directory for production
+            if IS_PRODUCTION:
+                fallback_dir = Path("/tmp") / directory.name
+                fallback_dir.mkdir(parents=True, exist_ok=True)
+                logging.warning(f"Using fallback directory: {fallback_dir}")
+                # Update the global variable
+                if directory == UPLOAD_FOLDER:
+                    globals()['UPLOAD_FOLDER'] = fallback_dir
+                elif directory == EXPORT_FOLDER:
+                    globals()['EXPORT_FOLDER'] = fallback_dir
+                elif directory == CACHE_FOLDER:
+                    globals()['CACHE_FOLDER'] = fallback_dir
+
+# Call the function at startup
+ensure_directories()
 
 # Set up logging
 if IS_PRODUCTION:
@@ -73,14 +98,14 @@ if IS_PRODUCTION:
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[logging.StreamHandler()]
     )
+    
+    # Log directory information
+    logging.info(f"Working directory: {os.getcwd()}")
+    logging.info(f"BASE_DIR: {BASE_DIR}")
+    logging.info(f"UPLOAD_FOLDER: {UPLOAD_FOLDER}")
+    logging.info(f"Directory exists: {UPLOAD_FOLDER.exists()}")
 else:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler()
-        ]
-    )
+    logging.basicConfig(level=logging.DEBUG)
 
 # Set up FastAPI app
 app = FastAPI(title="Verb Analysis API")
