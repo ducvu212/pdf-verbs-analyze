@@ -1,0 +1,33 @@
+# Core framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# File handling
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# Template engine
+jinja2==3.1.2
+
+# PDF processing
+pypdf==3.17.0
+pdfplumber==0.10.3
+
+# OCR capabilities (optional)
+pytesseract==0.3.10
+pdf2image==1.16.3
+pillow==10.1.0
+
+# NLP
+nltk==3.8.1
+
+# Export functionality
+python-docx==1.1.0
+weasyprint==60.2
+reportlab==4.0.7
+
+# Production server
+gunicorn==21.2.0
+
+# Type hints
+typing-extensions==4.8.0

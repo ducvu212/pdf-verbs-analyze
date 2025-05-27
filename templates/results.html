@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Verb Analysis Results</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .results-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            max-width: 1200px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .small-btn {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .highlight-btn {
+            background-color: #2196F3;
+            padding: 4px 8px;
+            font-size: 12px;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .highlight-btn:hover {
+            background-color: #1976D2;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .metric-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .tense-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .tense-table th, .tense-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .tense-table th {
+            background-color: #f2f2f2;
+        }
+        .tense-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .verb-examples {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .modal-container {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        .verb-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .verb-examples {
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+        }
+        .pdf-content-container {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            background-color: yellow;
+            padding: 2px 0;
+        }
+        .text-content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 30px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .highlighted {
+            color: #e74c3c !important; /* Màu đỏ nổi bật cho text */
+            font-weight: bold !important;
+            text-decoration: underline !important; /* Thêm gạch chân để dễ nhận biết */
+            background-color: transparent !important; /* Loại bỏ background */
+            padding: 0 !important; /* Loại bỏ padding */
+            border-radius: 0 !important; /* Loại bỏ border radius */
+            box-shadow: none !important; /* Loại bỏ shadow */
+            display: inline !important;
+        }
+
+        @keyframes flash {
+            0%, 100% { 
+                color: #e74c3c !important; 
+                text-decoration: underline !important;
+            }
+            50% { 
+                color: #c0392b !important; 
+                text-decoration: underline !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Verb Analysis Results</h1>
+    <p>Analysis results for: <strong>{{ filename }}</strong></p>
+    
+    <div class="results-container">
+        <!-- Key Metrics -->
+        <div class="section">
+            <h2>Key Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Total Verbs</div>
+                    <div class="metric-value">{{ results.verb_count }}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Passive Voice</div>
+                    <div class="metric-value">{{ results.passive_count }}</div>
+                    <div class="metric-subtitle">{{ "%.1f"|format(results.passive_count / results.verb_count * 100 if results.verb_count else 0) }}% of all verbs</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Modal Verbs</div>
+                    <div class="metric-value">{{ results.modal_count }}</div>
+                    <div class="metric-subtitle">{{ "%.1f"|format(results.modal_count / results.verb_count * 100 if results.verb_count else 0) }}% of all verbs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tense Distribution Chart -->
+        <div class="section">
+            <h2>Verb Tense Distribution</h2>
+            <div class="chart-container">
+                <canvas id="tenseChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Verb Groups by Tense -->
+        <div class="section">
+            <div class="verb-group-header">
+                <h2>Verb Groups by Tense (Present, Past, Future)</h2>
+                <button class="btn small-btn" onclick="showDetails('allVerbsModal')">View All Verbs</button>
+            </div>
+            
+            <table class="tense-table">
+                <tr>
+                    <th>Tense Group</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                    <th>Examples</th>
+                    <th>Action</th>
+                </tr>
+                <tr>
+                    <td>Simple Present</td>
+                    <td>{{ results.tense_group_counts.simple_present }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.simple_present / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.simple_present %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.simple_present|length)) %}
+                                {% set verb = results.tense_groups.simple_present[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.simple_present|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('simple_present')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Simple Past</td>
+                    <td>{{ results.tense_group_counts.simple_past }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.simple_past / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.simple_past %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.simple_past|length)) %}
+                                {% set verb = results.tense_groups.simple_past[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.simple_past|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('simple_past')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Present Continuous</td>
+                    <td>{{ results.tense_group_counts.present_continuous }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.present_continuous / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.present_continuous %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.present_continuous|length)) %}
+                                {% set verb = results.tense_groups.present_continuous[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.present_continuous|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('present_continuous')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Past Continuous</td>
+                    <td>{{ results.tense_group_counts.past_continuous }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.past_continuous / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.past_continuous %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.past_continuous|length)) %}
+                                {% set verb = results.tense_groups.past_continuous[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.past_continuous|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('past_continuous')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Present Perfect</td>
+                    <td>{{ results.tense_group_counts.present_perfect }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.present_perfect / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.present_perfect %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.present_perfect|length)) %}
+                                {% set verb = results.tense_groups.present_perfect[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.present_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('present_perfect')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Past Perfect</td>
+                    <td>{{ results.tense_group_counts.past_perfect }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.past_perfect / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.past_perfect %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.past_perfect|length)) %}
+                                {% set verb = results.tense_groups.past_perfect[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.past_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('past_perfect')">Highlight</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Future Simple</td>
+                    <td>{{ results.tense_group_counts.future_simple }}</td>
+                    <td>{{ "%.1f"|format(results.tense_group_counts.future_simple / results.verb_count * 100 if results.verb_count else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.tense_groups.future_simple %}
+                            {% set display_verbs = [] %}
+                            {% for i in range(min(3, results.tense_groups.future_simple|length)) %}
+                                {% set verb = results.tense_groups.future_simple[i] %}
+                                {% if ' ' in verb %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% else %}
+                                    {% set _ = display_verbs.append(verb) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ display_verbs|join(", ") }}
+                            {% if results.tense_groups.future_simple|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="highlight-btn" onclick="highlightTenseGroup('future_simple')">Highlight</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Passive Voice by Tense -->
+        <div class="section">
+            <div class="verb-group-header">
+                <h2>Verb Groups in Passive Voice by Tense</h2>
+                <button class="btn small-btn" onclick="showDetails('passiveVerbsModal')">View All Passive Verbs</button>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="passiveChart"></canvas>
+            </div>
+            
+            <table class="tense-table">
+                <tr>
+                    <th>Tense Group</th>
+                    <th>Count</th>
+                    <th>Percentage of Passives</th>
+                    <th>Examples</th>
+                </tr>
+                <tr>
+                    <td>Simple Present Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.simple_present|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.simple_present / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.simple_present else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.simple_present %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.simple_present|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.simple_present[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.simple_present|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Simple Past Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.simple_past|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.simple_past / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.simple_past else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.simple_past %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.simple_past|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.simple_past[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.simple_past|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Present Continuous Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.present_continuous|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.present_continuous / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.present_continuous else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.present_continuous %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.present_continuous|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.present_continuous[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.present_continuous|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Past Continuous Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.past_continuous|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.past_continuous / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.past_continuous else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.past_continuous %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.past_continuous|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.past_continuous[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.past_continuous|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Present Perfect Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.present_perfect|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.present_perfect / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.present_perfect else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.present_perfect %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.present_perfect|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.present_perfect[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.present_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Past Perfect Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.past_perfect|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.past_perfect / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.past_perfect else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.past_perfect %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.past_perfect|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.past_perfect[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.past_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Future Simple</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.future_simple|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.future_simple / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.future_simple else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.future_simple %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.future_simple|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.future_simple[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.future_simple|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Future Perfect Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.future_perfect|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.future_perfect / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.future_perfect else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.future_perfect %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.future_perfect|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.future_perfect[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.future_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Modal Passive</td>
+                    <td>{{ results.passive_voice_by_tense_group_counts.modal_passive|default(0) }}</td>
+                    <td>{{ "%.1f"|format(results.passive_voice_by_tense_group_counts.modal_passive / results.passive_count * 100 if results.passive_count and results.passive_voice_by_tense_group_counts.modal_passive else 0) }}%</td>
+                    <td class="verb-examples">
+                        {% if results.passive_voice_by_tense_group.modal_passive %}
+                            {% set examples = [] %}
+                            {% for i in range(min(3, results.passive_voice_by_tense_group.modal_passive|length)) %}
+                                {% set verb, _ = results.passive_voice_by_tense_group.modal_passive[i] %}
+                                {% set _ = examples.append(verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.passive_voice_by_tense_group.modal_passive|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Modal Verb Groups by Structure -->
+        <div class="section">
+            <div class="verb-group-header">
+                <h2>Modal Verb Groups by Structure</h2>
+                <button class="btn small-btn" onclick="showDetails('modalVerbsModal')">View All Modal Verbs</button>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="modalChart"></canvas>
+            </div>
+            
+            <table class="tense-table">
+                <tr>
+                    <th>Modal Structure</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                    <th>Examples</th>
+                </tr>
+                <tr>
+                    <td>Modal + base verb</td>
+                    <td id="modal-base-count">-</td>
+                    <td id="modal-base-percent">-</td>
+                    <td class="verb-examples">
+                        {% if results.modal_verb_structures.modal_base %}
+                            {% set examples = [] %}
+                            {% for modal, verb in results.modal_verb_structures.modal_base[:3] %}
+                                {% set _ = examples.append(modal + " " + verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.modal_verb_structures.modal_base|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Modal + be + V3</td>
+                    <td id="modal-passive-count">-</td>
+                    <td id="modal-passive-percent">-</td>
+                    <td class="verb-examples">
+                        {% if results.modal_verb_structures.modal_passive %}
+                            {% set examples = [] %}
+                            {% for modal, be, verb in results.modal_verb_structures.modal_passive[:3] %}
+                                {% set _ = examples.append(modal + " " + be + " " + verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.modal_verb_structures.modal_passive|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Modal + have + V3</td>
+                    <td id="modal-perfect-count">-</td>
+                    <td id="modal-perfect-percent">-</td>
+                    <td class="verb-examples">
+                        {% if results.modal_verb_structures.modal_perfect %}
+                            {% set examples = [] %}
+                            {% for modal, have, verb in results.modal_verb_structures.modal_perfect[:3] %}
+                                {% set _ = examples.append(modal + " " + have + " " + verb) %}
+                            {% endfor %}
+                            {{ examples|join(", ") }}
+                            {% if results.modal_verb_structures.modal_perfect|length > 3 %}...{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- PDF Text Content for Highlighting -->
+        <div class="section">
+            <h2>PDF Text Content</h2>
+            <p>Click on "Highlight" buttons above to highlight verbs in specific tense groups in the text below.</p>
+            <div id="pdf-text-content" class="text-content">
+                {% if results.text_content %}
+                    {{ results.text_content }}
+                {% elif results.extracted_text %}
+                    {{ results.extracted_text }}
+                {% elif results.pdf_text %}
+                    {{ results.pdf_text }}
+                {% else %}
+                    <p style="color: #999; font-style: italic;">
+                        No text content available. The PDF may contain only images or the text extraction failed.
+                        <br>Available verb data shows {{ results.verb_count }} verbs were found.
+                    </p>
+                    <div style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border: 1px solid #ccc;">
+                        <strong>Sample verbs found:</strong><br>
+                        {% if results.all_verbs %}
+                            {% for verb, tense in results.all_verbs[:20] %}
+                                <span style="margin: 2px; padding: 2px 5px; background-color: #e7f3ff; border-radius: 3px;">{{ verb }}</span>
+                            {% endfor %}
+                            {% if results.all_verbs|length > 20 %}...{% endif %}
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <button class="btn" onclick="resetHighlights()" style="margin-top: 15px;">Reset Highlights</button>
+        </div>
+    </div>
+    
+    <!-- All Verbs Modal -->
+    <div id="allVerbsModal" class="modal-container">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('allVerbsModal')">&times;</span>
+            <h2>All Verbs by Tense</h2>
+            
+            <h3>Present Tense Verbs</h3>
+            <table>
+                <tr>
+                    <th>Verb</th>
+                    <th>Specific Tense</th>
+                </tr>
+                {% for verb, tense in results.all_verbs %}
+                    {% if "present" in tense %}
+                        <tr>
+                            <td>{{ verb }}</td>
+                            <td>{{ tense }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+            
+            <h3>Past Tense Verbs</h3>
+            <table>
+                <tr>
+                    <th>Verb</th>
+                    <th>Specific Tense</th>
+                </tr>
+                {% for verb, tense in results.all_verbs %}
+                    {% if "past" in tense or tense == "simple_past" %}
+                        <tr>
+                            <td>{{ verb }}</td>
+                            <td>{{ tense }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+            
+            <h3>Future Tense Verbs</h3>
+            <table>
+                <tr>
+                    <th>Verb</th>
+                    <th>Specific Tense</th>
+                </tr>
+                {% for verb, tense in results.all_verbs %}
+                    {% if "future" in tense %}
+                        <tr>
+                            <td>{{ verb }}</td>
+                            <td>{{ tense }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    
+    <!-- Passive Verbs Modal -->
+    <div id="passiveVerbsModal" class="modal-container">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('passiveVerbsModal')">&times;</span>
+            <h2>All Verbs in Passive Voice</h2>
+            <table>
+                <tr>
+                    <th>Verb</th>
+                    <th>Tense</th>
+                </tr>
+                {% for verb, tense in results.passive_verbs %}
+                <tr>
+                    <td>{{ verb }}</td>
+                    <td>{{ tense }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modal Verbs Modal -->
+    <div id="modalVerbsModal" class="modal-container">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modalVerbsModal')">&times;</span>
+            <h2>All Modal Verbs</h2>
+            <table>
+                <tr>
+                    <th>Modal Verb</th>
+                    <th>Structure</th>
+                </tr>
+                {% for verb in results.modal_verbs %}
+                <tr>
+                    <td>{{ verb }}</td>
+                    <td>Modal + base verb</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <a href="/" class="btn">Analyze Another PDF</a>
+    <!-- Export buttons -->
+    <div style="margin-top: 20px; margin-bottom: 30px;">
+        <h3>Export Results</h3>
+        <a href="/export/pdf/{{ filename }}" class="btn" style="background-color: #e74c3c;">Export as PDF</a>
+        <a href="/export/docx/{{ filename }}" class="btn" style="background-color: #3498db; margin-left: 10px;">Export as Word Document</a>
+    </div>
+
+    <!-- Inject JSON data for JS -->
+    <script id="tense-group-data" type="application/json">{{ results.tense_groups|tojson }}</script>
+    <script id="modal-verb-structures-data" type="application/json">{{ results.modal_verb_structures|tojson }}</script>
+    <script id="passive-tense-group-counts-data" type="application/json">{{ results.passive_voice_by_tense_group_counts|tojson }}</script>
+    <script id="tense-group-counts-data" type="application/json">{{ results.tense_group_counts|tojson }}</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Parse injected JSON data
+    const tenseGroupData = JSON.parse(document.getElementById('tense-group-data').textContent);
+    const modalVerbStructures = JSON.parse(document.getElementById('modal-verb-structures-data').textContent);
+    const passiveTenseGroupCounts = JSON.parse(document.getElementById('passive-tense-group-counts-data').textContent);
+    const tenseGroupCounts = JSON.parse(document.getElementById('tense-group-counts-data').textContent);
+    
+    // Store the original text content for reliable highlighting
+    let originalPdfText = null;
+
+    // Reset highlights function
+    function resetHighlights() {
+        const textContent = document.getElementById('pdf-text-content');
+        if (textContent && originalPdfText) {
+            textContent.innerHTML = originalPdfText;
+        }
+    }
+
+    // Highlight tense group function
+    function highlightTenseGroup(tenseGroup) {
+        const textElement = document.getElementById('pdf-text-content');
+        if (!textElement) {
+            alert("Text content not found!");
+            return;
+        }
+        
+        if (originalPdfText === null) {
+            originalPdfText = textElement.innerHTML;
+        } else {
+            textElement.innerHTML = originalPdfText;
+        }
+        
+        if (!tenseGroupData || !tenseGroupData[tenseGroup]) {
+            alert(`No data for tense group "${tenseGroup}"`);
+            return;
+        }
+        
+        const verbs = tenseGroupData[tenseGroup];
+        if (!Array.isArray(verbs) || verbs.length === 0) {
+            alert(`No verbs found in tense group "${tenseGroup}"`);
+            return;
+        }
+        
+        const textContent = textElement.textContent || textElement.innerText;
+        if (textContent.length === 0) {
+            alert("No text content available for highlighting!");
+            return;
+        }
+        
+        let htmlContent = textElement.innerHTML;
+        let highlightCount = 0;
+        
+        verbs.forEach(verb => {
+            if (!verb || typeof verb !== 'string' || verb.trim().length === 0) return;
+            
+            const cleanVerb = verb.trim();
+            const verbInText = textContent.toLowerCase().includes(cleanVerb.toLowerCase());
+            
+            if (verbInText) {
+                const regex = new RegExp(`\\b${cleanVerb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+                const matches = htmlContent.match(regex);
+                
+                if (matches && matches.length > 0) {
+                    htmlContent = htmlContent.replace(regex, `<span class="highlighted">$&</span>`);
+                    highlightCount += matches.length;
+                } else {
+                    // Manual fallback
+                    const lowerHtml = htmlContent.toLowerCase();
+                    const lowerVerb = cleanVerb.toLowerCase();
+                    const index = lowerHtml.indexOf(lowerVerb);
+                    
+                    if (index !== -1) {
+                        const actualVerb = htmlContent.substring(index, index + cleanVerb.length);
+                        const before = htmlContent.substring(0, index);
+                        const after = htmlContent.substring(index + cleanVerb.length);
+                        
+                        htmlContent = before + `<span class="highlighted">${actualVerb}</span>` + after;
+                        highlightCount++;
+                    }
+                }
+            }
+        });
+        
+        textElement.innerHTML = htmlContent;
+        
+        setTimeout(() => {
+            const highlights = textElement.querySelectorAll('.highlighted');
+            if (highlights.length > 0) {
+                highlights[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                highlights[0].style.animation = 'flash 2s ease-in-out';
+                alert(`Successfully highlighted ${highlights.length} verbs from "${tenseGroup}" group`);
+            } else {
+                alert(`No verbs from "${tenseGroup}" group could be highlighted`);
+            }
+        }, 100);
+    }
+
+    // Function to show modal
+    function showDetails(modalId) {
+        document.getElementById(modalId).style.display = 'block';
+    }
+    
+    // Function to close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+    
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target.className === 'modal-container') {
+            event.target.style.display = 'none';
+        }
+    };
+    
+    // Initialize charts when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tense Distribution Chart
+        const tenseCtx = document.getElementById('tenseChart').getContext('2d');
+        new Chart(tenseCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'Simple Present', 'Simple Past', 'Present Continuous', 
+                    'Past Continuous', 'Present Perfect', 'Past Perfect', 'Future Simple'
+                ],
+                datasets: [{
+                    label: 'Number of Verbs',
+                    data: [
+                        tenseGroupCounts.simple_present || 0,
+                        tenseGroupCounts.simple_past || 0,
+                        tenseGroupCounts.present_continuous || 0,
+                        tenseGroupCounts.past_continuous || 0,
+                        tenseGroupCounts.present_perfect || 0,
+                        tenseGroupCounts.past_perfect || 0,
+                        tenseGroupCounts.future_simple || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(199, 199, 199, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(199, 199, 199, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Passive Voice Chart
+        const passiveCtx = document.getElementById('passiveChart').getContext('2d');
+        new Chart(passiveCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'Simple Present', 'Simple Past', 'Present Continuous', 
+                    'Past Continuous', 'Present Perfect', 'Past Perfect', 
+                    'Future Simple', 'Future Perfect', 'Modal Passive'
+                ],
+                datasets: [{
+                    data: [
+                        passiveTenseGroupCounts.simple_present || 0,
+                        passiveTenseGroupCounts.simple_past || 0,
+                        passiveTenseGroupCounts.present_continuous || 0,
+                        passiveTenseGroupCounts.past_continuous || 0,
+                        passiveTenseGroupCounts.present_perfect || 0,
+                        passiveTenseGroupCounts.past_perfect || 0,
+                        passiveTenseGroupCounts.future_simple || 0,
+                        passiveTenseGroupCounts.future_perfect || 0,
+                        passiveTenseGroupCounts.modal_passive || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(199, 199, 199, 0.6)',
+                        'rgba(83, 123, 156, 0.6)',
+                        'rgba(175, 122, 197, 0.6)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Modal Verb Chart
+        const modalCtx = document.getElementById('modalChart').getContext('2d');
+        const modalBaseCount = modalVerbStructures.modal_base ? modalVerbStructures.modal_base.length : 0;
+        const modalPassiveCount = modalVerbStructures.modal_passive ? modalVerbStructures.modal_passive.length : 0;
+        const modalPerfectCount = modalVerbStructures.modal_perfect ? modalVerbStructures.modal_perfect.length : 0;
+        
+        new Chart(modalCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Modal + base verb', 'Modal + be + V3', 'Modal + have + V3'],
+                datasets: [{
+                    data: [modalBaseCount, modalPassiveCount, modalPerfectCount],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(75, 192, 192, 0.6)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Update modal counts in table
+        document.getElementById('modal-base-count').textContent = modalBaseCount;
+        document.getElementById('modal-passive-count').textContent = modalPassiveCount;
+        document.getElementById('modal-perfect-count').textContent = modalPerfectCount;
+        
+        const totalModalCount = modalBaseCount + modalPassiveCount + modalPerfectCount;
+        document.getElementById('modal-base-percent').textContent = totalModalCount ? (modalBaseCount / totalModalCount * 100).toFixed(1) + '%' : '-';
+        document.getElementById('modal-passive-percent').textContent = totalModalCount ? (modalPassiveCount / totalModalCount * 100).toFixed(1) + '%' : '-';
+        document.getElementById('modal-perfect-percent').textContent = totalModalCount ? (modalPerfectCount / totalModalCount * 100).toFixed(1) + '%' : '-';
+    });
+    </script>
+</body>
+</html>

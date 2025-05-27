@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Verb Analysis</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Loading spinner styles */
+        .loading-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .progress-container {
+            width: 300px;
+            height: 20px;
+            background-color: #f3f3f3;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            color: white;
+            margin-top: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Verb Analysis</h1>
+    <p>Upload a PDF document and analyze verb usage including tenses and passive voice.</p>
+    
+    <div class="form-container">
+        <form id="analyze-form" action="/analyze/" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Select PDF File:</label>
+                <input type="file" id="file" name="file" accept=".pdf" required>
+                <p class="note">Only PDF files are supported.</p>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Analyze PDF</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Loading spinner overlay with progress bar -->
+    <div id="loading-container" class="loading-container">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing PDF... Please wait.</div>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="progress-text" class="progress-text">0%</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; font-size: 0.8em; color: #666;">
+        <p>This tool analyzes verbs in PDF documents and provides information about:</p>
+        <ul>
+            <li>Verb count and frequency</li>
+            <li>Verb tenses distribution</li>
+            <li>Passive voice usage</li>
+            <li>Modal verbs</li>
+        </ul>
+    </div>
+    
+    <script>
+        document.getElementById('analyze-form').addEventListener('submit', function(event) {
+            // Show the loading spinner when the form is submitted
+            document.getElementById('loading-container').style.display = 'flex';
+            
+            // Get the file and form elements
+            const fileInput = document.getElementById('file');
+            const form = document.getElementById('analyze-form');
+            
+            // Check if a file is selected
+            if (fileInput.files.length > 0) {
+                event.preventDefault(); // Prevent normal form submission
+                
+                // Create FormData object
+                const formData = new FormData(form);
+                
+                // Create and configure AJAX request
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/analyze/', true);
+                
+                // Set up progress tracking
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        // Calculate the percentage of upload completed
+                        const percentComplete = Math.round((e.loaded / e.total) * 50); // First 50% is upload
+                        updateProgress(percentComplete);
+                    }
+                };
+                
+                // Handle the response
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        // Start simulating the processing progress after upload is complete
+                        simulateProcessingProgress(50, 100); // Simulate from 50% to 100% for processing
+                        
+                        // Replace the current document with the response
+                        document.open();
+                        document.write(xhr.responseText);
+                        document.close();
+                    } else {
+                        // Handle errors
+                        alert('An error occurred during the file analysis.');
+                        document.getElementById('loading-container').style.display = 'none';
+                    }
+                };
+                
+                // Handle network errors
+                xhr.onerror = function() {
+                    alert('Network error occurred during file upload.');
+                    document.getElementById('loading-container').style.display = 'none';
+                };
+                
+                // Send the form data
+                xhr.send(formData);
+            }
+        });
+        
+        // Function to update the progress bar and text
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+        }
+        
+        // Function to simulate processing progress (from startPercent to 100%)
+        function simulateProcessingProgress(startPercent, endPercent) {
+            let currentPercent = startPercent;
+            const interval = setInterval(function() {
+                // Increment by a random amount between 1-5%
+                currentPercent += Math.floor(Math.random() * 5) + 1;
+                
+                // Cap at endPercent
+                if (currentPercent >= endPercent) {
+                    currentPercent = endPercent;
+                    clearInterval(interval);
+                }
+                
+                // Update the progress display
+                updateProgress(currentPercent);
+            }, 500); // Update every 500ms
+        }
+    </script>
+</body>
+</html>

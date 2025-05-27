@@ -1,0 +1,16 @@
+services:
+  # Dịch vụ web cho ứng dụng FastAPI
+  - type: web
+    name: pdf-verb-analyzer
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger'); nltk.download('wordnet')"
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    disk:
+      name: pdf-analyzer-disk
+      mountPath: /app/uploads
+      sizeGB: 1
